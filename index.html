@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Threshold — A Tarot Reading</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Cinzel+Decorative:wght@400;700&family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&display=swap" rel="stylesheet">
 <style>
   :root{
     --ink:#171022;
@@ -14,8 +17,9 @@
     --gold-bright:#e0b968;
     --ember:#8a3b2f;
     --line: rgba(233,214,177,0.18);
-    --serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
-    --display: 'Iowan Old Style', Georgia, serif;
+    --serif: 'Cormorant Garamond', 'Iowan Old Style', Georgia, serif;
+    --display: 'Cinzel Decorative', 'Iowan Old Style', Georgia, serif;
+    --display-small: 'Cinzel', 'Iowan Old Style', Georgia, serif;
   }
 
   *{box-sizing:border-box;}
@@ -48,12 +52,12 @@
     position:relative; z-index:1;
     max-width:920px;
     margin:0 auto;
-    padding:56px 24px 100px;
+    padding: clamp(32px, 8vw, 56px) 20px clamp(60px, 12vw, 100px);
   }
 
   header{
     text-align:center;
-    margin-bottom:48px;
+    margin-bottom:clamp(32px, 7vw, 48px);
   }
 
   .mark{
@@ -65,7 +69,7 @@
   h1{
     font-family:var(--display);
     font-weight:400;
-    font-size:clamp(2.1rem, 5vw, 3.1rem);
+    font-size:clamp(2rem, 8vw, 3.1rem);
     letter-spacing:.01em;
     margin:0 0 10px;
     color:var(--parchment);
@@ -73,25 +77,28 @@
 
   .sub{
     color:#c9b9dd;
-    font-size:1.02rem;
-    max-width:46ch;
+    font-size:clamp(1.05rem, 3.4vw, 1.2rem);
+    max-width:42ch;
     margin:0 auto;
     line-height:1.6;
     font-style:italic;
+    padding:0 8px;
   }
 
   /* ---- intention ---- */
   .intention{
     max-width:520px;
-    margin:40px auto 0;
+    margin:36px auto 0;
     text-align:center;
+    padding:0 8px;
   }
   .intention label{
     display:block;
-    font-size:.85rem;
+    font-size:.82rem;
     letter-spacing:.04em;
     color:#a996c4;
     margin-bottom:10px;
+    line-height:1.4;
   }
   .intention input{
     width:100%;
@@ -100,7 +107,7 @@
     border-bottom:1px solid var(--line);
     color:var(--parchment);
     font-family:var(--serif);
-    font-size:1.1rem;
+    font-size:16px; /* prevents iOS auto-zoom on focus */
     font-style:italic;
     text-align:center;
     padding:8px 4px 12px;
@@ -113,21 +120,30 @@
   .spreads{
     display:flex;
     justify-content:center;
-    gap:12px;
-    flex-wrap:wrap;
-    margin:36px 0 8px;
+    gap:clamp(6px, 2.5vw, 12px);
+    flex-wrap:nowrap;
+    margin:32px 0 8px;
+    width:100%;
   }
   .spread-btn{
     background:transparent;
     border:1px solid var(--line);
     color:#d8cbe8;
-    font-family:var(--serif);
-    font-size:.95rem;
-    padding:11px 20px;
+    font-family:var(--display-small);
+    font-size:clamp(.62rem, 3.1vw, .88rem);
+    letter-spacing:.01em;
+    padding:clamp(9px, 2.6vw, 12px) clamp(8px, 3vw, 18px);
+    min-height:44px;
+    flex:1 1 0;
+    min-width:0;
+    max-width:200px;
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
     border-radius:2px;
     cursor:pointer;
     transition:border-color .2s ease, color .2s ease, background .2s ease;
-    letter-spacing:.01em;
+    -webkit-tap-highlight-color:transparent;
   }
   .spread-btn:hover{border-color:var(--gold); color:var(--gold-bright);}
   .spread-btn.active{
@@ -138,29 +154,32 @@
   .spread-desc{
     text-align:center;
     color:#9c8bb8;
-    font-size:.9rem;
+    font-size:.88rem;
     font-style:italic;
     min-height:1.4em;
     margin-bottom:8px;
+    padding:0 12px;
   }
 
   .draw-row{
     display:flex;
     justify-content:center;
-    margin:26px 0 8px;
+    margin:24px 0 8px;
   }
   .draw-btn{
     background:linear-gradient(180deg, var(--gold-bright), var(--gold));
     color:var(--midnight);
     border:none;
-    padding:14px 34px;
-    font-family:var(--serif);
-    font-size:1.05rem;
-    letter-spacing:.02em;
+    padding:15px 40px;
+    min-height:48px;
+    font-family:var(--display-small);
+    font-size:1rem;
+    letter-spacing:.04em;
     border-radius:2px;
     cursor:pointer;
     box-shadow:0 8px 24px rgba(185,146,74,.18);
     transition:transform .15s ease, box-shadow .15s ease;
+    -webkit-tap-highlight-color:transparent;
   }
   .draw-btn:hover{transform:translateY(-1px); box-shadow:0 10px 28px rgba(185,146,74,.28);}
   .draw-btn:active{transform:translateY(0);}
@@ -175,25 +194,31 @@
     font-size:.85rem;
     color:#a996c4;
   }
-  .reversed-toggle input{accent-color:var(--gold);}
+  .reversed-toggle input{
+    accent-color:var(--gold);
+    width:16px; height:16px;
+  }
 
   /* ---- reading area ---- */
   .reading{
-    margin-top:56px;
+    margin-top:clamp(40px, 8vw, 56px);
   }
 
   .cards{
     display:grid;
-    gap:34px;
+    gap:clamp(20px, 5vw, 34px);
     justify-content:center;
   }
-  .cards.n1{grid-template-columns: minmax(200px,240px);}
-  .cards.n3{grid-template-columns: repeat(3, minmax(150px,220px));}
-  .cards.n10{grid-template-columns: repeat(5, minmax(120px,160px)); row-gap:52px;}
+  .cards.n1{grid-template-columns: minmax(0,240px); max-width:240px; margin:0 auto;}
+  .cards.n3{grid-template-columns: repeat(3, minmax(0,220px));}
+  .cards.n10{grid-template-columns: repeat(5, minmax(0,160px)); row-gap:44px;}
 
-  @media (max-width:640px){
-    .cards.n3{grid-template-columns: repeat(1, minmax(200px,260px));}
-    .cards.n10{grid-template-columns: repeat(2, minmax(120px,160px));}
+  @media (max-width:720px){
+    .cards.n10{grid-template-columns: repeat(3, minmax(0,150px));}
+  }
+  @media (max-width:520px){
+    .cards.n3{grid-template-columns: minmax(0,1fr); max-width:240px; margin:0 auto;}
+    .cards.n10{grid-template-columns: repeat(2, minmax(0,150px)); max-width:340px; margin:0 auto;}
   }
 
   .slot{
@@ -204,18 +229,21 @@
   }
 
   .position-label{
-    font-size:.78rem;
+    font-size:.76rem;
     letter-spacing:.04em;
     color:var(--gold);
-    margin-bottom:14px;
+    margin-bottom:12px;
     font-style:italic;
     min-height:1.2em;
+    line-height:1.3;
+    padding:0 4px;
   }
 
   .card-scene{
     perspective:1400px;
     width:100%;
     aspect-ratio: 5 / 8.2;
+    -webkit-tap-highlight-color:transparent;
   }
 
   .card{
@@ -224,14 +252,15 @@
     height:100%;
     transform-style:preserve-3d;
     transition:transform 0.9s cubic-bezier(.2,.7,.3,1);
-    cursor:default;
+    cursor:pointer;
+    filter:drop-shadow(0 10px 26px rgba(0,0,0,.45));
   }
   .card.flipped{transform:rotateY(180deg);}
-  .card.reversed.flipped{transform:rotateY(180deg) rotate(180deg);}
 
   .face{
     position:absolute; inset:0;
     backface-visibility:hidden;
+    -webkit-backface-visibility:hidden;
     border-radius:6px;
     overflow:hidden;
   }
@@ -281,6 +310,14 @@
     height:100%;
     object-fit:cover;
     display:block;
+    /* Reversed orientation is applied ONLY to the artwork, isolated from
+       the 3D flip transform on .card, so it renders correctly every time
+       rather than depending on how the two transforms combine. */
+    transform:none;
+    transition:none;
+  }
+  .front .card-image img.reversed-art{
+    transform:rotate(180deg);
   }
   .front .glyph{
     flex:1;
@@ -289,25 +326,29 @@
     justify-content:center;
     width:100%;
   }
+  .front .glyph.reversed-art{
+    transform:rotate(180deg);
+  }
   .front .glyph svg{width:60%; height:auto; max-height:100%;}
   .front .caption{
     width:100%;
-    padding:8% 6% 10%;
+    padding:7% 6% 9%;
     text-align:center;
   }
   .front .arcana-no{
-    font-size:.68rem;
+    font-size:.66rem;
     letter-spacing:.08em;
     color:var(--ember);
   }
   .front .card-name{
-    font-family:var(--display);
-    font-size:.92rem;
-    line-height:1.25;
+    font-family:var(--display-small);
+    font-size:clamp(.72rem, 2.4vw, .82rem);
+    letter-spacing:.02em;
+    line-height:1.3;
     margin-top:4px;
   }
   .front .suit-tag{
-    font-size:.62rem;
+    font-size:.6rem;
     letter-spacing:.06em;
     color:#8a6f3f;
     text-transform:uppercase;
@@ -315,18 +356,19 @@
   }
 
   .meaning{
-    margin-top:18px;
+    margin-top:16px;
     max-width:280px;
+    padding:0 4px;
   }
   .meaning .orientation{
-    font-size:.72rem;
+    font-size:.7rem;
     letter-spacing:.06em;
     text-transform:uppercase;
     color:var(--gold);
     margin-bottom:6px;
   }
   .meaning .keywords{
-    font-size:.85rem;
+    font-size:1rem;
     color:#d8cbe8;
     line-height:1.6;
   }
@@ -378,7 +420,7 @@
     margin-bottom:4px;
   }
   .synthesis .card-note .what{
-    font-size:.92rem;
+    font-size:1.05rem;
     color:#e6dcf2;
     line-height:1.55;
   }
@@ -662,10 +704,11 @@ function renderCards(){
       ? (c.number===0 ? '0' : toRoman(c.number))
       : c.suit.toUpperCase();
     const glyphMarkup = glyphFor(c);
+    const artClass = entry.reversed ? ' reversed-art' : '';
     front.innerHTML = `
       <div class="card-image">
-        <img src="${c.image}" alt="${c.name}" loading="lazy"
-             onerror="this.closest('.card-image').outerHTML = '<div class=&quot;glyph&quot;>${glyphMarkup.replace(/"/g,'&quot;')}</div>';">
+        <img class="${artClass.trim()}" src="${c.image}" alt="${c.name}" loading="lazy"
+             onerror="this.closest('.card-image').outerHTML = '<div class=&quot;glyph${artClass}&quot;>${glyphMarkup.replace(/"/g,'&quot;')}</div>';">
       </div>
       <div class="caption">
         <div class="arcana-no">${numLabel}</div>
