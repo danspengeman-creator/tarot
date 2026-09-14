@@ -1,0 +1,645 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Threshold — A Tarot Reading</title>
+<style>
+  :root{
+    --ink:#171022;
+    --dusk:#241a35;
+    --midnight:#140e1f;
+    --parchment:#f3ead9;
+    --gold:#b9924a;
+    --gold-bright:#e0b968;
+    --ember:#8a3b2f;
+    --line: rgba(233,214,177,0.18);
+    --serif: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, serif;
+    --display: 'Iowan Old Style', Georgia, serif;
+  }
+
+  *{box-sizing:border-box;}
+
+  html,body{
+    margin:0;
+    min-height:100%;
+    background:
+      radial-gradient(ellipse at 20% -10%, #2c2043 0%, transparent 55%),
+      radial-gradient(ellipse at 85% 10%, #201a38 0%, transparent 50%),
+      var(--midnight);
+    color:var(--parchment);
+    font-family:var(--serif);
+  }
+
+  .stars{
+    position:fixed; inset:0; z-index:0; pointer-events:none;
+    background-image:
+      radial-gradient(1px 1px at 10% 20%, rgba(255,255,255,.5), transparent),
+      radial-gradient(1px 1px at 80% 15%, rgba(255,255,255,.4), transparent),
+      radial-gradient(1.5px 1.5px at 60% 8%, rgba(255,255,255,.35), transparent),
+      radial-gradient(1px 1px at 30% 45%, rgba(255,255,255,.3), transparent),
+      radial-gradient(1px 1px at 92% 60%, rgba(255,255,255,.3), transparent),
+      radial-gradient(1.5px 1.5px at 45% 80%, rgba(255,255,255,.25), transparent),
+      radial-gradient(1px 1px at 15% 90%, rgba(255,255,255,.3), transparent);
+    opacity:.6;
+  }
+
+  .wrap{
+    position:relative; z-index:1;
+    max-width:920px;
+    margin:0 auto;
+    padding:56px 24px 100px;
+  }
+
+  header{
+    text-align:center;
+    margin-bottom:48px;
+  }
+
+  .mark{
+    width:34px; height:34px;
+    margin:0 auto 18px;
+    opacity:.85;
+  }
+
+  h1{
+    font-family:var(--display);
+    font-weight:400;
+    font-size:clamp(2.1rem, 5vw, 3.1rem);
+    letter-spacing:.01em;
+    margin:0 0 10px;
+    color:var(--parchment);
+  }
+
+  .sub{
+    color:#c9b9dd;
+    font-size:1.02rem;
+    max-width:46ch;
+    margin:0 auto;
+    line-height:1.6;
+    font-style:italic;
+  }
+
+  /* ---- intention ---- */
+  .intention{
+    max-width:520px;
+    margin:40px auto 0;
+    text-align:center;
+  }
+  .intention label{
+    display:block;
+    font-size:.85rem;
+    letter-spacing:.04em;
+    color:#a996c4;
+    margin-bottom:10px;
+  }
+  .intention input{
+    width:100%;
+    background:transparent;
+    border:none;
+    border-bottom:1px solid var(--line);
+    color:var(--parchment);
+    font-family:var(--serif);
+    font-size:1.1rem;
+    font-style:italic;
+    text-align:center;
+    padding:8px 4px 12px;
+    outline:none;
+  }
+  .intention input::placeholder{color:#7c6c93;}
+  .intention input:focus{border-bottom-color:var(--gold);}
+
+  /* ---- spread choice ---- */
+  .spreads{
+    display:flex;
+    justify-content:center;
+    gap:12px;
+    flex-wrap:wrap;
+    margin:36px 0 8px;
+  }
+  .spread-btn{
+    background:transparent;
+    border:1px solid var(--line);
+    color:#d8cbe8;
+    font-family:var(--serif);
+    font-size:.95rem;
+    padding:11px 20px;
+    border-radius:2px;
+    cursor:pointer;
+    transition:border-color .2s ease, color .2s ease, background .2s ease;
+    letter-spacing:.01em;
+  }
+  .spread-btn:hover{border-color:var(--gold); color:var(--gold-bright);}
+  .spread-btn.active{
+    border-color:var(--gold);
+    color:var(--midnight);
+    background:var(--gold-bright);
+  }
+  .spread-desc{
+    text-align:center;
+    color:#9c8bb8;
+    font-size:.9rem;
+    font-style:italic;
+    min-height:1.4em;
+    margin-bottom:8px;
+  }
+
+  .draw-row{
+    display:flex;
+    justify-content:center;
+    margin:26px 0 8px;
+  }
+  .draw-btn{
+    background:linear-gradient(180deg, var(--gold-bright), var(--gold));
+    color:var(--midnight);
+    border:none;
+    padding:14px 34px;
+    font-family:var(--serif);
+    font-size:1.05rem;
+    letter-spacing:.02em;
+    border-radius:2px;
+    cursor:pointer;
+    box-shadow:0 8px 24px rgba(185,146,74,.18);
+    transition:transform .15s ease, box-shadow .15s ease;
+  }
+  .draw-btn:hover{transform:translateY(-1px); box-shadow:0 10px 28px rgba(185,146,74,.28);}
+  .draw-btn:active{transform:translateY(0);}
+  .draw-btn:disabled{opacity:.45; cursor:default; transform:none; box-shadow:none;}
+
+  .reversed-toggle{
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:8px;
+    margin-top:18px;
+    font-size:.85rem;
+    color:#a996c4;
+  }
+  .reversed-toggle input{accent-color:var(--gold);}
+
+  /* ---- reading area ---- */
+  .reading{
+    margin-top:56px;
+  }
+
+  .cards{
+    display:grid;
+    gap:34px;
+    justify-content:center;
+  }
+  .cards.n1{grid-template-columns: minmax(200px,240px);}
+  .cards.n3{grid-template-columns: repeat(3, minmax(150px,220px));}
+  .cards.n10{grid-template-columns: repeat(5, minmax(120px,160px)); row-gap:52px;}
+
+  @media (max-width:640px){
+    .cards.n3{grid-template-columns: repeat(1, minmax(200px,260px));}
+    .cards.n10{grid-template-columns: repeat(2, minmax(120px,160px));}
+  }
+
+  .slot{
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    text-align:center;
+  }
+
+  .position-label{
+    font-size:.78rem;
+    letter-spacing:.04em;
+    color:var(--gold);
+    margin-bottom:14px;
+    font-style:italic;
+    min-height:1.2em;
+  }
+
+  .card-scene{
+    perspective:1400px;
+    width:100%;
+    aspect-ratio: 5 / 8.2;
+  }
+
+  .card{
+    position:relative;
+    width:100%;
+    height:100%;
+    transform-style:preserve-3d;
+    transition:transform 0.9s cubic-bezier(.2,.7,.3,1);
+    cursor:default;
+  }
+  .card.flipped{transform:rotateY(180deg);}
+  .card.reversed.flipped{transform:rotateY(180deg) rotate(180deg);}
+
+  .face{
+    position:absolute; inset:0;
+    backface-visibility:hidden;
+    border-radius:6px;
+    overflow:hidden;
+  }
+
+  .back{
+    background:
+      repeating-linear-gradient(45deg, rgba(233,214,177,.05) 0 2px, transparent 2px 14px),
+      linear-gradient(160deg, #2b2044, #1a1428);
+    border:1px solid var(--line);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+  }
+  .back::before{
+    content:"";
+    width:62%;
+    height:62%;
+    border:1px solid rgba(224,185,104,.55);
+    border-radius:50%;
+    background:
+      radial-gradient(circle, transparent 55%, rgba(224,185,104,.08) 56%),
+      conic-gradient(from 0deg, rgba(224,185,104,.12), transparent 25%, rgba(224,185,104,.12) 50%, transparent 75%, rgba(224,185,104,.12));
+  }
+
+  .front{
+    transform:rotateY(180deg);
+    background:linear-gradient(180deg, #f6efdf, var(--parchment));
+    border:1px solid var(--gold);
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    padding:0;
+    color:var(--ink);
+  }
+  .front .card-image{
+    flex:1;
+    width:100%;
+    min-height:0;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    overflow:hidden;
+    background:#0f0a18;
+  }
+  .front .card-image img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+  }
+  .front .glyph{
+    flex:1;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    width:100%;
+  }
+  .front .glyph svg{width:60%; height:auto; max-height:100%;}
+  .front .caption{
+    width:100%;
+    padding:8% 6% 10%;
+    text-align:center;
+  }
+  .front .arcana-no{
+    font-size:.68rem;
+    letter-spacing:.08em;
+    color:var(--ember);
+  }
+  .front .card-name{
+    font-family:var(--display);
+    font-size:.92rem;
+    line-height:1.25;
+    margin-top:4px;
+  }
+  .front .suit-tag{
+    font-size:.62rem;
+    letter-spacing:.06em;
+    color:#8a6f3f;
+    text-transform:uppercase;
+    margin-top:2px;
+  }
+
+  .meaning{
+    margin-top:18px;
+    max-width:280px;
+  }
+  .meaning .orientation{
+    font-size:.72rem;
+    letter-spacing:.06em;
+    text-transform:uppercase;
+    color:var(--gold);
+    margin-bottom:6px;
+  }
+  .meaning .keywords{
+    font-size:.85rem;
+    color:#d8cbe8;
+    line-height:1.6;
+  }
+
+  .reveal-hint{
+    text-align:center;
+    color:#8a7aa3;
+    font-size:.85rem;
+    font-style:italic;
+    margin-top:40px;
+  }
+
+  footer{
+    text-align:center;
+    margin-top:70px;
+    color:#5f527a;
+    font-size:.78rem;
+  }
+
+  .reset-row{
+    text-align:center;
+    margin-top:44px;
+  }
+  .reset-btn{
+    background:none;
+    border:none;
+    color:#9c8bb8;
+    font-family:var(--serif);
+    font-style:italic;
+    font-size:.9rem;
+    cursor:pointer;
+    text-decoration:underline;
+    text-underline-offset:3px;
+  }
+  .reset-btn:hover{color:var(--gold-bright);}
+</style>
+</head>
+<body>
+<div class="stars"></div>
+<div class="wrap">
+
+  <header>
+    <svg class="mark" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <circle cx="20" cy="20" r="12" stroke="#b9924a" stroke-width="1"/>
+      <path d="M20 2 L20 8 M20 32 L20 38 M2 20 L8 20 M32 20 L38 20" stroke="#b9924a" stroke-width="1"/>
+    </svg>
+    <h1>Threshold</h1>
+    <p class="sub">A quiet place to draw the cards and sit with what they show you.</p>
+  </header>
+
+  <div class="intention">
+    <label for="intent">What are you carrying into this reading? <em>(optional)</em></label>
+    <input id="intent" type="text" placeholder="e.g. a decision I keep circling back to">
+  </div>
+
+  <div class="spreads" id="spreadButtons"></div>
+  <p class="spread-desc" id="spreadDesc"></p>
+
+  <div class="draw-row">
+    <button class="draw-btn" id="drawBtn">Draw</button>
+  </div>
+  <div class="reversed-toggle">
+    <input type="checkbox" id="allowReversed" checked>
+    <label for="allowReversed">Allow reversed cards</label>
+  </div>
+
+  <p class="reveal-hint" id="revealHint" style="display:none;">Tap a card to turn it over.</p>
+
+  <div class="reading">
+    <div class="cards" id="cardsArea"></div>
+  </div>
+
+  <div class="reset-row" id="resetRow" style="display:none;">
+    <button class="reset-btn" id="resetBtn">Begin a new reading</button>
+  </div>
+
+  <footer>Rider–Waite–Smith imagery, first published 1909, is in the public domain.</footer>
+</div>
+
+<script>
+/* ---------------- Card images ---------------- */
+/* Rider-Waite-Smith deck, public domain (1909), digitized by mixvlad/TarotCards.
+   Pinned to a specific commit so filenames never shift under us. */
+const IMG_BASE = "https://raw.githubusercontent.com/mixvlad/TarotCards/5c44ca5c94a9d67f9bc06cb6b920c2544fa76c74/tarot/rider-waite/720px/";
+
+/* ---------------- Card data ---------------- */
+const MAJOR = [
+  ["The Fool","00_Fool.jpg","New beginnings, a leap of faith, innocence, an open road ahead.","Recklessness, hesitation at the wrong moment, a lesson avoided."],
+  ["The Magician","01_Magician.jpg","Focused will, having exactly what you need, turning intention into action.","Scattered energy, manipulation, talent left unused."],
+  ["The High Priestess","02_High_Priestess.jpg","Quiet knowing, intuition over explanation, something not yet ready to be said.","Secrets kept too long, disconnection from your own gut sense."],
+  ["The Empress","03_Empress.jpg","Abundance, nurturing, creativity coming to fruition.","Overgiving, stalled growth, neglecting yourself while tending others."],
+  ["The Emperor","04_Emperor.jpg","Structure, steady authority, building something built to last.","Rigidity, control used as a substitute for trust."],
+  ["The Hierophant","05_Hierophant.jpg","Tradition, shared belief, learning from an established path.","Questioning inherited rules, outgrowing an old teacher."],
+  ["The Lovers","06_Lovers.jpg","A meaningful choice, alignment of values, genuine connection.","Misalignment, a choice made from fear rather than desire."],
+  ["The Chariot","07_Chariot.jpg","Willpower, forward motion, holding opposing forces in one direction.","Loss of direction, forcing an outcome instead of steering it."],
+  ["Strength","08_Strength.jpg","Quiet courage, patience with what's difficult, gentleness that holds firm.","Self-doubt, forcing control instead of trusting steadiness."],
+  ["The Hermit","09_Hermit.jpg","Withdrawal for the sake of clarity, guidance found in solitude.","Isolation past its use, avoiding the very insight you're seeking."],
+  ["Wheel of Fortune","10_Wheel_of_Fortune.jpg","A turning point, change arriving on its own timeline, cycles completing.","Resisting a change already underway, feeling at the mercy of events."],
+  ["Justice","11_Justice.jpg","Fairness, truth coming to light, consequences meeting their cause.","Imbalance, an unresolved matter, avoiding accountability."],
+  ["The Hanged Man","12_Hanged_Man.jpg","A pause that reveals a new perspective, surrender that isn't defeat.","Stalling, martyrdom, delay that has stopped serving you."],
+  ["Death","13_Death.jpg","An ending that clears space, transformation, letting a chapter close.","Resistance to necessary change, clinging to what has already ended."],
+  ["Temperance","14_Temperance.jpg","Balance, patience, blending opposites into something workable.","Excess, impatience, an imbalance that keeps tipping over."],
+  ["The Devil","15_Devil.jpg","Attachment, a pattern that feels bigger than it is, something binding you.","Recognizing the chain, a first step toward release."],
+  ["The Tower","16_Tower.jpg","Sudden upheaval, a false structure giving way, necessary disruption.","Averted crisis, or fear of a collapse that hasn't happened yet."],
+  ["The Star","17_Star.jpg","Renewed hope, quiet healing, faith after a hard stretch.","Discouragement, disconnection from hope, running low on faith."],
+  ["The Moon","18_Moon.jpg","Uncertainty, what's hidden beneath the surface, trusting instinct in the dark.","Confusion lifting, a fear turning out smaller than it looked."],
+  ["The Sun","19_Sun.jpg","Clarity, joy, a straightforward and welcome success.","Clouded joy, a delay before the good news lands."],
+  ["Judgement","20_Judgement.jpg","A reckoning, a calling answered, waking up to what's true.","Self-judgment, hesitation to answer a call you've already heard."],
+  ["The World","21_World.jpg","Completion, arrival, a cycle closing with everything in place.","Loose ends, a near-completion still asking for one more step."]
+];
+
+const SUITS = [
+  {name:"Wands", file:"Wands", theme:"action, ambition, creative fire"},
+  {name:"Cups", file:"Cups", theme:"emotion, relationship, intuition"},
+  {name:"Swords", file:"Swords", theme:"thought, conflict, clarity"},
+  {name:"Pentacles", file:"Pents", theme:"resources, work, the material world"}
+];
+
+const RANKS = [
+  ["Ace","a fresh spark","a false start or delay"],
+  ["Two","a choice or partnership forming","hesitation between two paths"],
+  ["Three","early growth, collaboration","misalignment among the parties involved"],
+  ["Four","stability, a pause to consolidate","stagnation, taking stability for granted"],
+  ["Five","friction, competition, a setback","tension easing, conflict resolving"],
+  ["Six","cooperation, a shared win","imbalance in giving and receiving"],
+  ["Seven","perseverance, assessing your position","overextension, doubting your progress"],
+  ["Eight","swift movement, momentum","scattered effort, progress stalling"],
+  ["Nine","near-completion, resilience","exhaustion close to the finish line"],
+  ["Ten","fulfillment, the full weight of the matter","burden, an ending overdue"],
+  ["Page","a curious beginner's energy","immaturity, news delayed"],
+  ["Knight","pursuit, direct action","recklessness or, conversely, stalled momentum"],
+  ["Queen","mastery expressed with warmth","that same mastery turned inward or withheld"],
+  ["King","mastery expressed with authority","that authority misapplied or overbearing"]
+];
+
+function buildDeck(){
+  const deck = [];
+  MAJOR.forEach((c, i)=>{
+    deck.push({
+      name:c[0], arcana:"major", number:i,
+      image: IMG_BASE + c[1],
+      upright:c[2], reversedMeaning:c[3], suit:null
+    });
+  });
+  SUITS.forEach(s=>{
+    RANKS.forEach((r,i)=>{
+      const rankNum = String(i+1).padStart(2,'0');
+      deck.push({
+        name:`${r[0]} of ${s.name}`,
+        arcana:"minor", suit:s.name, rank:r[0], number:i+1,
+        image: IMG_BASE + `${s.file}${rankNum}.jpg`,
+        upright:`${r[1][0].toUpperCase()+r[1].slice(1)} — within the realm of ${s.theme}.`,
+        reversedMeaning:`${r[2][0].toUpperCase()+r[2].slice(1)} — within the realm of ${s.theme}.`
+      });
+    });
+  });
+  return deck;
+}
+const DECK = buildDeck();
+
+/* ---------------- Glyphs (simple symbolic marks per suit / major) ---------------- */
+function glyphFor(card){
+  const stroke = "#8a6f3f";
+  if(card.arcana==="major"){
+    return `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="30" fill="none" stroke="${stroke}" stroke-width="1.2"/><path d="M50 8 L50 92 M8 50 L92 50" stroke="${stroke}" stroke-width="1"/><circle cx="50" cy="50" r="6" fill="${stroke}"/></svg>`;
+  }
+  const marks = {
+    Wands: `<svg viewBox="0 0 100 100"><line x1="50" y1="10" x2="50" y2="90" stroke="${stroke}" stroke-width="3"/><line x1="35" y1="25" x2="65" y2="25" stroke="${stroke}" stroke-width="2"/><line x1="35" y1="75" x2="65" y2="75" stroke="${stroke}" stroke-width="2"/></svg>`,
+    Cups: `<svg viewBox="0 0 100 100"><path d="M30 30 Q30 65 50 65 Q70 65 70 30" fill="none" stroke="${stroke}" stroke-width="3"/><line x1="50" y1="65" x2="50" y2="80" stroke="${stroke}" stroke-width="3"/><line x1="35" y1="80" x2="65" y2="80" stroke="${stroke}" stroke-width="3"/></svg>`,
+    Swords: `<svg viewBox="0 0 100 100"><line x1="50" y1="10" x2="50" y2="80" stroke="${stroke}" stroke-width="3"/><path d="M50 10 L42 26 L58 26 Z" fill="${stroke}"/><line x1="32" y1="60" x2="68" y2="60" stroke="${stroke}" stroke-width="3"/></svg>`,
+    Pentacles: `<svg viewBox="0 0 100 100"><circle cx="50" cy="50" r="32" fill="none" stroke="${stroke}" stroke-width="2.5"/><path d="M50 25 L58 45 L80 45 L62 58 L69 78 L50 65 L31 78 L38 58 L20 45 L42 45 Z" fill="none" stroke="${stroke}" stroke-width="1.4"/></svg>`
+  };
+  return marks[card.suit];
+}
+
+/* ---------------- Spreads ---------------- */
+const SPREADS = {
+  single: {label:"Single Card", positions:["Where you are"], desc:"One card, for a clear question or a quiet check-in."},
+  three:  {label:"Three Card", positions:["Past","Present","Future"], desc:"A short arc: what led here, where you stand, where it's headed."},
+  celtic: {label:"Celtic Cross", positions:["The Heart of It","What Crosses You","Foundation","Recent Past","What Crowns You","Near Future","Your Stance","Outside Influences","Hopes & Fears","Outcome"], desc:"A fuller ten-card look for a situation with real weight to it."}
+};
+
+let currentSpread = "three";
+let drawnCards = [];
+
+const spreadButtons = document.getElementById('spreadButtons');
+Object.keys(SPREADS).forEach(key=>{
+  const btn = document.createElement('button');
+  btn.className = 'spread-btn' + (key===currentSpread ? ' active':'');
+  btn.textContent = SPREADS[key].label;
+  btn.dataset.key = key;
+  btn.addEventListener('click', ()=>{
+    currentSpread = key;
+    document.querySelectorAll('.spread-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    updateDesc();
+    clearReading();
+  });
+  spreadButtons.appendChild(btn);
+});
+
+function updateDesc(){
+  document.getElementById('spreadDesc').textContent = SPREADS[currentSpread].desc;
+}
+updateDesc();
+
+function shuffledDeck(){
+  const d = [...DECK];
+  for(let i=d.length-1;i>0;i--){
+    const j = Math.floor(Math.random()*(i+1));
+    [d[i],d[j]] = [d[j],d[i]];
+  }
+  return d;
+}
+
+function clearReading(){
+  drawnCards = [];
+  document.getElementById('cardsArea').innerHTML = '';
+  document.getElementById('cardsArea').className = 'cards';
+  document.getElementById('revealHint').style.display = 'none';
+  document.getElementById('resetRow').style.display = 'none';
+  document.getElementById('drawBtn').disabled = false;
+}
+
+function draw(){
+  const positions = SPREADS[currentSpread].positions;
+  const allowRev = document.getElementById('allowReversed').checked;
+  const shuffled = shuffledDeck();
+  drawnCards = positions.map((label, i)=>({
+    card: shuffled[i],
+    reversed: allowRev ? Math.random() < 0.35 : false,
+    position: label
+  }));
+  renderCards();
+  document.getElementById('drawBtn').disabled = true;
+  document.getElementById('resetRow').style.display = 'block';
+  document.getElementById('revealHint').style.display = 'block';
+}
+
+function renderCards(){
+  const area = document.getElementById('cardsArea');
+  area.innerHTML = '';
+  area.className = 'cards n' + drawnCards.length;
+
+  drawnCards.forEach((entry, idx)=>{
+    const slot = document.createElement('div');
+    slot.className = 'slot';
+
+    const posLabel = document.createElement('div');
+    posLabel.className = 'position-label';
+    posLabel.textContent = entry.position;
+    slot.appendChild(posLabel);
+
+    const scene = document.createElement('div');
+    scene.className = 'card-scene';
+
+    const card = document.createElement('div');
+    card.className = 'card' + (entry.reversed ? ' reversed' : '');
+    card.dataset.idx = idx;
+
+    const back = document.createElement('div');
+    back.className = 'face back';
+
+    const front = document.createElement('div');
+    front.className = 'face front';
+    const c = entry.card;
+    const numLabel = c.arcana === 'major'
+      ? (c.number===0 ? '0' : toRoman(c.number))
+      : c.suit.toUpperCase();
+    const glyphMarkup = glyphFor(c);
+    front.innerHTML = `
+      <div class="card-image">
+        <img src="${c.image}" alt="${c.name}" loading="lazy"
+             onerror="this.closest('.card-image').outerHTML = '<div class=&quot;glyph&quot;>${glyphMarkup.replace(/"/g,'&quot;')}</div>';">
+      </div>
+      <div class="caption">
+        <div class="arcana-no">${numLabel}</div>
+        <div class="card-name">${c.name}</div>
+        ${c.arcana==='minor' ? `<div class="suit-tag">${c.suit}</div>` : ''}
+      </div>
+    `;
+
+    card.appendChild(back);
+    card.appendChild(front);
+    scene.appendChild(card);
+    slot.appendChild(scene);
+
+    const meaning = document.createElement('div');
+    meaning.className = 'meaning';
+    meaning.style.visibility = 'hidden';
+    meaning.innerHTML = `
+      <div class="orientation">${entry.reversed ? 'Reversed' : 'Upright'}</div>
+      <div class="keywords">${entry.reversed ? c.reversedMeaning : c.upright}</div>
+    `;
+    slot.appendChild(meaning);
+
+    scene.addEventListener('click', ()=>{
+      if(card.classList.contains('flipped')) return;
+      card.classList.add('flipped');
+      setTimeout(()=>{ meaning.style.visibility = 'visible'; }, 500);
+    });
+
+    area.appendChild(slot);
+  });
+}
+
+function toRoman(num){
+  const romans = ["I","II","III","IV","V","VI","VII","VIII","IX","X","XI","XII","XIII","XIV","XV","XVI","XVII","XVIII","XIX","XX","XXI"];
+  return romans[num-1] || String(num);
+}
+
+document.getElementById('drawBtn').addEventListener('click', draw);
+document.getElementById('resetBtn').addEventListener('click', clearReading);
+</script>
+</body>
+</html>
