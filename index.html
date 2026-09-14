@@ -339,6 +339,59 @@
     margin-top:40px;
   }
 
+  .synthesis{
+    max-width:640px;
+    margin:56px auto 0;
+    padding:32px 30px;
+    border:1px solid var(--line);
+    border-radius:4px;
+    background:rgba(255,255,255,0.02);
+    opacity:0;
+    transform:translateY(8px);
+    transition:opacity .6s ease, transform .6s ease;
+  }
+  .synthesis.visible{opacity:1; transform:translateY(0);}
+  .synthesis h2{
+    font-family:var(--display);
+    font-weight:400;
+    font-size:1.3rem;
+    margin:0 0 6px;
+    color:var(--gold-bright);
+    text-align:center;
+  }
+  .synthesis .tone-line{
+    text-align:center;
+    color:#c9b9dd;
+    font-style:italic;
+    font-size:.95rem;
+    margin-bottom:22px;
+  }
+  .synthesis .card-note{
+    padding:14px 0;
+    border-top:1px solid var(--line);
+  }
+  .synthesis .card-note:first-of-type{border-top:none;}
+  .synthesis .card-note .who{
+    font-size:.8rem;
+    letter-spacing:.03em;
+    color:var(--gold);
+    margin-bottom:4px;
+  }
+  .synthesis .card-note .what{
+    font-size:.92rem;
+    color:#e6dcf2;
+    line-height:1.55;
+  }
+  .synthesis .caveat{
+    margin-top:22px;
+    padding-top:18px;
+    border-top:1px solid var(--line);
+    font-size:.82rem;
+    color:#8a7aa3;
+    font-style:italic;
+    line-height:1.6;
+  }
+
   footer{
     text-align:center;
     margin-top:70px;
@@ -399,6 +452,8 @@
     <div class="cards" id="cardsArea"></div>
   </div>
 
+  <div class="synthesis" id="synthesis"></div>
+
   <div class="reset-row" id="resetRow" style="display:none;">
     <button class="reset-btn" id="resetBtn">Begin a new reading</button>
   </div>
@@ -413,29 +468,31 @@
 const IMG_BASE = "https://raw.githubusercontent.com/mixvlad/TarotCards/5c44ca5c94a9d67f9bc06cb6b920c2544fa76c74/tarot/rider-waite/720px/";
 
 /* ---------------- Card data ---------------- */
+/* Each entry: [name, filename, upright meaning, upright valence, reversed meaning, reversed valence]
+   valence: 1 = uplifting, 0 = neutral/depends on context, -1 = challenging */
 const MAJOR = [
-  ["The Fool","00_Fool.jpg","New beginnings, a leap of faith, innocence, an open road ahead.","Recklessness, hesitation at the wrong moment, a lesson avoided."],
-  ["The Magician","01_Magician.jpg","Focused will, having exactly what you need, turning intention into action.","Scattered energy, manipulation, talent left unused."],
-  ["The High Priestess","02_High_Priestess.jpg","Quiet knowing, intuition over explanation, something not yet ready to be said.","Secrets kept too long, disconnection from your own gut sense."],
-  ["The Empress","03_Empress.jpg","Abundance, nurturing, creativity coming to fruition.","Overgiving, stalled growth, neglecting yourself while tending others."],
-  ["The Emperor","04_Emperor.jpg","Structure, steady authority, building something built to last.","Rigidity, control used as a substitute for trust."],
-  ["The Hierophant","05_Hierophant.jpg","Tradition, shared belief, learning from an established path.","Questioning inherited rules, outgrowing an old teacher."],
-  ["The Lovers","06_Lovers.jpg","A meaningful choice, alignment of values, genuine connection.","Misalignment, a choice made from fear rather than desire."],
-  ["The Chariot","07_Chariot.jpg","Willpower, forward motion, holding opposing forces in one direction.","Loss of direction, forcing an outcome instead of steering it."],
-  ["Strength","08_Strength.jpg","Quiet courage, patience with what's difficult, gentleness that holds firm.","Self-doubt, forcing control instead of trusting steadiness."],
-  ["The Hermit","09_Hermit.jpg","Withdrawal for the sake of clarity, guidance found in solitude.","Isolation past its use, avoiding the very insight you're seeking."],
-  ["Wheel of Fortune","10_Wheel_of_Fortune.jpg","A turning point, change arriving on its own timeline, cycles completing.","Resisting a change already underway, feeling at the mercy of events."],
-  ["Justice","11_Justice.jpg","Fairness, truth coming to light, consequences meeting their cause.","Imbalance, an unresolved matter, avoiding accountability."],
-  ["The Hanged Man","12_Hanged_Man.jpg","A pause that reveals a new perspective, surrender that isn't defeat.","Stalling, martyrdom, delay that has stopped serving you."],
-  ["Death","13_Death.jpg","An ending that clears space, transformation, letting a chapter close.","Resistance to necessary change, clinging to what has already ended."],
-  ["Temperance","14_Temperance.jpg","Balance, patience, blending opposites into something workable.","Excess, impatience, an imbalance that keeps tipping over."],
-  ["The Devil","15_Devil.jpg","Attachment, a pattern that feels bigger than it is, something binding you.","Recognizing the chain, a first step toward release."],
-  ["The Tower","16_Tower.jpg","Sudden upheaval, a false structure giving way, necessary disruption.","Averted crisis, or fear of a collapse that hasn't happened yet."],
-  ["The Star","17_Star.jpg","Renewed hope, quiet healing, faith after a hard stretch.","Discouragement, disconnection from hope, running low on faith."],
-  ["The Moon","18_Moon.jpg","Uncertainty, what's hidden beneath the surface, trusting instinct in the dark.","Confusion lifting, a fear turning out smaller than it looked."],
-  ["The Sun","19_Sun.jpg","Clarity, joy, a straightforward and welcome success.","Clouded joy, a delay before the good news lands."],
-  ["Judgement","20_Judgement.jpg","A reckoning, a calling answered, waking up to what's true.","Self-judgment, hesitation to answer a call you've already heard."],
-  ["The World","21_World.jpg","Completion, arrival, a cycle closing with everything in place.","Loose ends, a near-completion still asking for one more step."]
+  ["The Fool","00_Fool.jpg","New beginnings, a leap of faith, innocence, an open road ahead.",1,"Recklessness, hesitation at the wrong moment, a lesson avoided.",-1],
+  ["The Magician","01_Magician.jpg","Focused will, having exactly what you need, turning intention into action.",1,"Scattered energy, manipulation, talent left unused.",-1],
+  ["The High Priestess","02_High_Priestess.jpg","Quiet knowing, intuition over explanation, something not yet ready to be said.",0,"Secrets kept too long, disconnection from your own gut sense.",-1],
+  ["The Empress","03_Empress.jpg","Abundance, nurturing, creativity coming to fruition.",1,"Overgiving, stalled growth, neglecting yourself while tending others.",-1],
+  ["The Emperor","04_Emperor.jpg","Structure, steady authority, building something built to last.",1,"Rigidity, control used as a substitute for trust.",-1],
+  ["The Hierophant","05_Hierophant.jpg","Tradition, shared belief, learning from an established path.",0,"Questioning inherited rules, outgrowing an old teacher.",0],
+  ["The Lovers","06_Lovers.jpg","A meaningful choice, alignment of values, genuine connection.",1,"Misalignment, a choice made from fear rather than desire.",-1],
+  ["The Chariot","07_Chariot.jpg","Willpower, forward motion, holding opposing forces in one direction.",1,"Loss of direction, forcing an outcome instead of steering it.",-1],
+  ["Strength","08_Strength.jpg","Quiet courage, patience with what's difficult, gentleness that holds firm.",1,"Self-doubt, forcing control instead of trusting steadiness.",-1],
+  ["The Hermit","09_Hermit.jpg","Withdrawal for the sake of clarity, guidance found in solitude.",0,"Isolation past its use, avoiding the very insight you're seeking.",-1],
+  ["Wheel of Fortune","10_Wheel_of_Fortune.jpg","A turning point, change arriving on its own timeline, cycles completing.",0,"Resisting a change already underway, feeling at the mercy of events.",-1],
+  ["Justice","11_Justice.jpg","Fairness, truth coming to light, consequences meeting their cause.",0,"Imbalance, an unresolved matter, avoiding accountability.",-1],
+  ["The Hanged Man","12_Hanged_Man.jpg","A pause that reveals a new perspective, surrender that isn't defeat.",0,"Stalling, martyrdom, delay that has stopped serving you.",-1],
+  ["Death","13_Death.jpg","An ending that clears space, transformation, letting a chapter close.",0,"Resistance to necessary change, clinging to what has already ended.",-1],
+  ["Temperance","14_Temperance.jpg","Balance, patience, blending opposites into something workable.",1,"Excess, impatience, an imbalance that keeps tipping over.",-1],
+  ["The Devil","15_Devil.jpg","Attachment, a pattern that feels bigger than it is, something binding you.",-1,"Recognizing the chain, a first step toward release.",1],
+  ["The Tower","16_Tower.jpg","Sudden upheaval, a false structure giving way, necessary disruption.",-1,"Averted crisis, or fear of a collapse that hasn't happened yet.",0],
+  ["The Star","17_Star.jpg","Renewed hope, quiet healing, faith after a hard stretch.",1,"Discouragement, disconnection from hope, running low on faith.",-1],
+  ["The Moon","18_Moon.jpg","Uncertainty, what's hidden beneath the surface, trusting instinct in the dark.",-1,"Confusion lifting, a fear turning out smaller than it looked.",1],
+  ["The Sun","19_Sun.jpg","Clarity, joy, a straightforward and welcome success.",1,"Clouded joy, a delay before the good news lands.",0],
+  ["Judgement","20_Judgement.jpg","A reckoning, a calling answered, waking up to what's true.",1,"Self-judgment, hesitation to answer a call you've already heard.",-1],
+  ["The World","21_World.jpg","Completion, arrival, a cycle closing with everything in place.",1,"Loose ends, a near-completion still asking for one more step.",0]
 ];
 
 const SUITS = [
@@ -445,21 +502,22 @@ const SUITS = [
   {name:"Pentacles", file:"Pents", theme:"resources, work, the material world"}
 ];
 
+/* [rank name, upright meaning, upright valence, reversed meaning, reversed valence] */
 const RANKS = [
-  ["Ace","a fresh spark","a false start or delay"],
-  ["Two","a choice or partnership forming","hesitation between two paths"],
-  ["Three","early growth, collaboration","misalignment among the parties involved"],
-  ["Four","stability, a pause to consolidate","stagnation, taking stability for granted"],
-  ["Five","friction, competition, a setback","tension easing, conflict resolving"],
-  ["Six","cooperation, a shared win","imbalance in giving and receiving"],
-  ["Seven","perseverance, assessing your position","overextension, doubting your progress"],
-  ["Eight","swift movement, momentum","scattered effort, progress stalling"],
-  ["Nine","near-completion, resilience","exhaustion close to the finish line"],
-  ["Ten","fulfillment, the full weight of the matter","burden, an ending overdue"],
-  ["Page","a curious beginner's energy","immaturity, news delayed"],
-  ["Knight","pursuit, direct action","recklessness or, conversely, stalled momentum"],
-  ["Queen","mastery expressed with warmth","that same mastery turned inward or withheld"],
-  ["King","mastery expressed with authority","that authority misapplied or overbearing"]
+  ["Ace","a fresh spark",1,"a false start or delay",-1],
+  ["Two","a choice or partnership forming",0,"hesitation between two paths",-1],
+  ["Three","early growth, collaboration",1,"misalignment among the parties involved",-1],
+  ["Four","stability, a pause to consolidate",0,"stagnation, taking stability for granted",-1],
+  ["Five","friction, competition, a setback",-1,"tension easing, conflict resolving",1],
+  ["Six","cooperation, a shared win",1,"imbalance in giving and receiving",-1],
+  ["Seven","perseverance, assessing your position",0,"overextension, doubting your progress",-1],
+  ["Eight","swift movement, momentum",1,"scattered effort, progress stalling",-1],
+  ["Nine","near-completion, resilience",0,"exhaustion close to the finish line",-1],
+  ["Ten","fulfillment, the full weight of the matter",0,"burden, an ending overdue",-1],
+  ["Page","a curious beginner's energy",0,"immaturity, news delayed",-1],
+  ["Knight","pursuit, direct action",1,"recklessness or, conversely, stalled momentum",-1],
+  ["Queen","mastery expressed with warmth",1,"that same mastery turned inward or withheld",-1],
+  ["King","mastery expressed with authority",1,"that authority misapplied or overbearing",-1]
 ];
 
 function buildDeck(){
@@ -468,7 +526,9 @@ function buildDeck(){
     deck.push({
       name:c[0], arcana:"major", number:i,
       image: IMG_BASE + c[1],
-      upright:c[2], reversedMeaning:c[3], suit:null
+      upright:c[2], uprightValence:c[3],
+      reversedMeaning:c[4], reversedValence:c[5],
+      suit:null
     });
   });
   SUITS.forEach(s=>{
@@ -479,7 +539,9 @@ function buildDeck(){
         arcana:"minor", suit:s.name, rank:r[0], number:i+1,
         image: IMG_BASE + `${s.file}${rankNum}.jpg`,
         upright:`${r[1][0].toUpperCase()+r[1].slice(1)} — within the realm of ${s.theme}.`,
-        reversedMeaning:`${r[2][0].toUpperCase()+r[2].slice(1)} — within the realm of ${s.theme}.`
+        uprightValence:r[2],
+        reversedMeaning:`${r[3][0].toUpperCase()+r[3].slice(1)} — within the realm of ${s.theme}.`,
+        reversedValence:r[4]
       });
     });
   });
@@ -549,6 +611,9 @@ function clearReading(){
   document.getElementById('revealHint').style.display = 'none';
   document.getElementById('resetRow').style.display = 'none';
   document.getElementById('drawBtn').disabled = false;
+  const synth = document.getElementById('synthesis');
+  synth.classList.remove('visible');
+  synth.innerHTML = '';
 }
 
 function draw(){
@@ -626,7 +691,11 @@ function renderCards(){
     scene.addEventListener('click', ()=>{
       if(card.classList.contains('flipped')) return;
       card.classList.add('flipped');
-      setTimeout(()=>{ meaning.style.visibility = 'visible'; }, 500);
+      setTimeout(()=>{
+        meaning.style.visibility = 'visible';
+        entry.revealed = true;
+        if(drawnCards.every(e=>e.revealed)) buildSynthesis();
+      }, 500);
     });
 
     area.appendChild(slot);
@@ -636,6 +705,55 @@ function renderCards(){
 function toRoman(num){
   const romans = ["I","II","III","IV","V","VI","VII","VIII","IX","X","XI","XII","XIII","XIV","XV","XVI","XVII","XVIII","XIX","XX","XXI"];
   return romans[num-1] || String(num);
+}
+
+function buildSynthesis(){
+  const synth = document.getElementById('synthesis');
+
+  const total = drawnCards.reduce((sum, e)=>{
+    const v = e.reversed ? e.card.reversedValence : e.card.uprightValence;
+    return sum + v;
+  }, 0);
+  const avg = total / drawnCards.length;
+
+  let toneLabel, toneLine;
+  if(avg >= 0.5){
+    toneLabel = "Mostly favorable ground";
+    toneLine = "More of the cards here are pointing toward ease, movement, or things going your way than toward friction.";
+  } else if(avg >= 0.15){
+    toneLabel = "Leaning favorable, with something to work through";
+    toneLine = "The overall lean is toward ease, but at least one card is asking for real attention alongside it.";
+  } else if(avg > -0.15){
+    toneLabel = "A genuine mix";
+    toneLine = "This spread isn't tilted one way. It's holding both ease and friction at once, which is often the most honest kind of reading.";
+  } else if(avg > -0.5){
+    toneLabel = "Leaning toward challenge";
+    toneLine = "More of these cards are naming something difficult than something easy. That's not a bad omen, it's usually a nudge toward what needs attention.";
+  } else {
+    toneLabel = "A demanding spread";
+    toneLine = "Most of what came up here is pointing at friction, endings, or work still ahead. Worth sitting with rather than rushing past.";
+  }
+
+  const notesHtml = drawnCards.map(e=>{
+    const c = e.card;
+    const meaning = e.reversed ? c.reversedMeaning : c.upright;
+    const orient = e.reversed ? "reversed" : "upright";
+    return `
+      <div class="card-note">
+        <div class="who">${e.position} — ${c.name} (${orient})</div>
+        <div class="what">${meaning}</div>
+      </div>
+    `;
+  }).join('');
+
+  synth.innerHTML = `
+    <h2>${toneLabel}</h2>
+    <p class="tone-line">${toneLine}</p>
+    ${notesHtml}
+    <p class="caveat">A reversed card isn't automatically bad news and an upright one isn't automatically good news, these are prompts for reflection rather than a verdict. Read them against whatever you actually asked going in.</p>
+  `;
+  requestAnimationFrame(()=>synth.classList.add('visible'));
+  synth.scrollIntoView({behavior:'smooth', block:'nearest'});
 }
 
 document.getElementById('drawBtn').addEventListener('click', draw);
