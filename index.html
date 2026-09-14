@@ -253,7 +253,6 @@
     transform-style:preserve-3d;
     transition:transform 0.9s cubic-bezier(.2,.7,.3,1);
     cursor:pointer;
-    filter:drop-shadow(0 10px 26px rgba(0,0,0,.45));
   }
   .card.flipped{transform:rotateY(180deg);}
 
@@ -263,6 +262,7 @@
     -webkit-backface-visibility:hidden;
     border-radius:6px;
     overflow:hidden;
+    box-shadow:0 10px 26px rgba(0,0,0,.45);
   }
 
   .back{
@@ -457,6 +457,28 @@
     text-underline-offset:3px;
   }
   .reset-btn:hover{color:var(--gold-bright);}
+
+  /* ---- mobile: bigger text across the board ---- */
+  @media (max-width:640px){
+    .sub{ font-size:1.15rem; }
+    .intention label{ font-size:.95rem; }
+    .spread-desc{ font-size:1rem; }
+    .reversed-toggle{ font-size:1rem; }
+    .position-label{ font-size:.88rem; }
+    .front .arcana-no{ font-size:.72rem; }
+    .front .card-name{ font-size:.85rem; }
+    .front .suit-tag{ font-size:.7rem; }
+    .meaning .orientation{ font-size:.8rem; }
+    .meaning .keywords{ font-size:1.1rem; }
+    .reveal-hint{ font-size:1rem; }
+    .synthesis h2{ font-size:1.45rem; }
+    .synthesis .tone-line{ font-size:1.05rem; }
+    .synthesis .card-note .who{ font-size:.9rem; }
+    .synthesis .card-note .what{ font-size:1.12rem; }
+    .synthesis .caveat{ font-size:.92rem; }
+    footer{ font-size:.88rem; }
+    .reset-btn{ font-size:1rem; }
+  }
 </style>
 </head>
 <body>
